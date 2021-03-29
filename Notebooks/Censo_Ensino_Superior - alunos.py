@@ -32,8 +32,30 @@ from pyspark.sql.types import IntegerType
 
 # COMMAND ----------
 
+#salvando na máquina para extração dos dados
+dbutils.fs.cp('dbfs:/tmp/Superior_2017.zip', 'file:/tmp/Censo_Superior_2017.zip')
+dbutils.fs.cp('dbfs:/tmp/Superior_2018.zip', 'file:/tmp/Censo_Superior_2018.zip')
+dbutils.fs.cp('dbfs:/tmp/Superior_2019.zip', 'file:/tmp/Censo_Superior_2019.zip')
+
+# COMMAND ----------
+
 # MAGIC %md
-# MAGIC ###Extraindo os arquivos da url
+# MAGIC ###Extraindo os arquivos
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC unzip -j /tmp/Censo_Superior_2017.zip -d /tmp/Superior2017
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC unzip -j /tmp/Censo_Superior_2018.zip -d /tmp/Superior2018
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC unzip -j /tmp/Censo_Superior_2019.zip -d /tmp/Superior2019
 
 # COMMAND ----------
 
@@ -48,6 +70,39 @@ from pyspark.sql.types import IntegerType
 # COMMAND ----------
 
 # MAGIC %md
+# MAGIC Remove todos os arquivos do diretório que não possuem a extensão **.zip**
+# MAGIC 
+# MAGIC - **rm**: remove arquivos
+# MAGIC - **-v**: visualiza cada arquivo que está sendo deletado
+# MAGIC - **/tmp/censoSuperior_2019/**: diretório
+# MAGIC - **!(*.CSV)**: arquivos que não possuem a extensão .CSV
+# MAGIC - o último arquivo de 2017 já está apenas o CSV, não precisa fazer essa etapa
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC shopt -s extglob
+# MAGIC rm -v /tmp/Superior2018/!(*.CSV) 
+# MAGIC shopt -u extglob
+# MAGIC 
+# MAGIC echo -ne '\n'
+# MAGIC echo -ne '\n'
+# MAGIC ls /tmp/Superior2018
+
+# COMMAND ----------
+
+# MAGIC %sh
+# MAGIC shopt -s extglob
+# MAGIC rm -v /tmp/Superior2019/!(*.CSV) 
+# MAGIC shopt -u extglob
+# MAGIC 
+# MAGIC echo -ne '\n'
+# MAGIC echo -ne '\n'
+# MAGIC ls /tmp/Superior2019
+
+# COMMAND ----------
+
+# MAGIC %md
 # MAGIC ###Lendo os arquivos csv, criando os dataframes, verificando os esquemas e salvando na camada bronze
 
 # COMMAND ----------
@@ -55,12 +110,12 @@ from pyspark.sql.types import IntegerType
 #abrir o arquivo csv e salvar em um DataFrame
 #2017
 csv = 'file:/tmp/SuperiorAlunos_2017/DM_ALUNO.CSV'
-dfe_2017 = (spark.read
+df_2017 = (spark.read
       .option('sep', '|')
       .option('header', 'true')
       .csv(csv)
 )
-dfe_2017.printSchema()
+df_2017.printSchema()
 
 # COMMAND ----------
 
