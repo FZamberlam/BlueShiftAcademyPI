@@ -29,7 +29,7 @@ pip install openpyxl
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Importando os pacotes
+# MAGIC ###Importar os pacotes
 
 # COMMAND ----------
 
@@ -42,7 +42,7 @@ from pyspark.sql.functions import lit
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Extraindo os arquivos na url e salvando no dbfs
+# MAGIC ###Extração dos arquivos da url
 
 # COMMAND ----------
 
@@ -52,7 +52,7 @@ from pyspark.sql.functions import lit
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Fazendo backup do arquivo .zip para o DBFS
+# MAGIC ###Fazer backup do arquivo .zip para o DBFS
 
 # COMMAND ----------
 
@@ -61,7 +61,7 @@ dbutils.fs.mv('file:/tmp/IDEB.zip', 'dbfs:/tmp/IDEB.zip')
 
 # COMMAND ----------
 
-#salvando na máquina para extração dos dados
+#salvar na máquina para extração dos dados
 dbutils.fs.cp('dbfs:/tmp/IDEB.zip', 'file:/tmp/nota_IDEB.zip')
 
 # COMMAND ----------
@@ -73,7 +73,7 @@ unzip -j /tmp/nota_IDEB.zip -d /tmp/resultado_IDEB/
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo os arquivos xlsx, criando o dataframes verificando o esquema e salvando na camada bronze
+# MAGIC ###Ler os arquivos xlsx, criar o dataframes verificando o esquema e salvar na camada bronze
 
 # COMMAND ----------
 
@@ -87,13 +87,13 @@ df_iniciais
 
 # COMMAND ----------
 
-#verificando o esquema
+#verificar o esquema
 print(df_iniciais.info())
 
 # COMMAND ----------
 
 #abrir o arquivo de excel, apenas com as informações necessárias e transformar em um dataframe pandas
-#egunda aba
+#segunda aba
 excel_file = '/tmp/resultado_IDEB/divulgacao_brasil_ideb_2019.xlsx'
 cols = ['Rede','IDEB_2013','IDEB_2015','IDEB_2017','IDEB_2019','Projecao_2007','Projecao_2009','Projecao_2011','Projecao_2013','Projecao_2015','Projecao_2017','Projecao_2019','Projecao_2021']
 df_finais = pd.read_excel(excel_file,sheet_name=1,names=cols,engine='openpyxl',usecols=[1,78,79,80,81,82,83,84,85,86,87,88,89],skiprows=10,skipfooter=3,header=None)
@@ -102,7 +102,7 @@ df_finais
 
 # COMMAND ----------
 
-#verificando o esquema
+#verificar o esquema
 print(df_finais.info())
 
 # COMMAND ----------
@@ -117,7 +117,7 @@ df_medio
 
 # COMMAND ----------
 
-#verificando o esquema
+#verificar o esquema
 print(df_medio.info())
 
 # COMMAND ----------
@@ -140,27 +140,27 @@ df_medio = spark.createDataFrame(df_medio)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df_iniciais.write.format('delta').mode('overwrite').save(Blob_Path  + '/mnt/bronze/IDEB_iniciais')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df_finais.write.format('delta').mode('overwrite').save(Blob_Path  + '/mnt/bronze/IDEB_finais')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df_medio.write.format('delta').mode('overwrite').save(Blob_Path  + '/mnt/bronze/IDEB_medio')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o dataframe e fazendo as transformações - salvando na camada prata (todos como um dataframe único)
+# MAGIC ###Ler o dataframe e fazer as transformações - salvando na camada prata (todos como um dataframe único)
 
 # COMMAND ----------
 
-#lendo o dataframe de anos iniciais para fazer as transformações
+#ler o dataframe de anos iniciais para fazer as transformações
 df_iniciais = spark.read.format('delta').load(Blob_Path  + '/mnt/bronze/IDEB_iniciais')
 display(df_iniciais)
 
@@ -172,65 +172,65 @@ display(df_iniciais)
 
 # COMMAND ----------
 
-# selecionando as colunas que vamos usar
+# selecionar as colunas que vamos usar
 df_iniciais = df_iniciais.select('Nivel_Escolaridade','Rede','IDEB_2017','IDEB_2019','Projecao_2021')
 display(df_iniciais)
 
 # COMMAND ----------
 
-#lendo o dataframe de anos finais para fazer as transformações
+#ler o dataframe de anos finais para fazer as transformações
 df_finais = spark.read.format('delta').load(Blob_Path  + '/mnt/bronze/IDEB_finais')
 display(df_finais)
 
 # COMMAND ----------
 
-#adicionando coluna de valor 'anos finais' ao dataframe 
+#adicionar coluna de valor 'anos finais' ao dataframe 
 df_finais = df_finais.withColumn('Nivel_Escolaridade', lit('Fundamental_Anos_Finais'))
 display(df_finais)
 
 # COMMAND ----------
 
-# selecionando as colunas que vamos usar
+# selecionar as colunas que vamos usar
 df_finais = df_finais.select('Nivel_Escolaridade','Rede','IDEB_2017','IDEB_2019','Projecao_2021')
 display(df_finais)
 
 # COMMAND ----------
 
-#lendo o dataframe de ensino médio para fazer as transformações
+#ler o dataframe de ensino médio para fazer as transformações
 df_medio = spark.read.format('delta').load(Blob_Path  + '/mnt/bronze/IDEB_medio')
 display(df_medio)
 
 # COMMAND ----------
 
-#adicionando coluna de valor 'ensino médio' aod dataframe 
+#adicionar coluna de valor 'ensino médio' ao dataframe 
 df_medio = df_medio.withColumn('Nivel_Escolaridade', lit('Ensino_Médio'))
 display(df_medio)
 
 # COMMAND ----------
 
-# selecionando as colunas que vamos usar
+# selecionar as colunas que vamos usar
 df_medio = df_medio.select('Nivel_Escolaridade','Rede','IDEB_2017','IDEB_2019','Projecao_2021')
 display(df_medio)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela prata) dados modificados
+#salvar no delta lake (camada prata)
 df_iniciais.write.format('delta').mode('append').save(Blob_Path  + '/mnt/prata/IDEB')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela prata) dados modificados
+#salvar no delta lake (camada prata) 
 df_finais.write.format('delta').mode('append').save(Blob_Path  + '/mnt/prata/IDEB')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela prata) dados modificados
+#salvar no delta lake (camada prata) 
 df_medio.write.format('delta').mode('append').save(Blob_Path  + '/mnt/prata/IDEB')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo e verificando o arquivo (camada prata)
+# MAGIC ###Ler e verificar o arquivo (camada prata)
 
 # COMMAND ----------
 
@@ -246,7 +246,7 @@ df_IDEB = df_IDEB.toPandas()
 
 # COMMAND ----------
 
-#suar nomes das colunas originais
+#usar nomes das colunas originais
 colunas_originais = df_IDEB.columns
 # Obter novos nomes de colunas para renomear e poder separar o que são numéricos
 colunas_rename = [x if not x.split('_')[-1].isdigit() else x.split('_')[-1] for x in  colunas_originais]
@@ -283,7 +283,7 @@ display(df_IDEB)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvanda na camada ouro para consumo pelo PowerBI
+# MAGIC ###Salvar na camada ouro para consumo pelo PowerBI
 
 # COMMAND ----------
 
