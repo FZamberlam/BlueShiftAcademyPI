@@ -20,7 +20,7 @@ Blob_Path = 'wasbs://m03container@m03storage.blob.core.windows.net'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Importando os pacotes
+# MAGIC ###Importar os pacotes
 
 # COMMAND ----------
 
@@ -33,7 +33,7 @@ from pyspark.sql.types import IntegerType
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Extraindo os arquivos na url e salvando no dbfs
+# MAGIC ###Extração dos arquivos da url
 
 # COMMAND ----------
 
@@ -53,7 +53,7 @@ from pyspark.sql.types import IntegerType
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Fazendo backup dos arquivos .zip para o DBFS
+# MAGIC ###Fazer backup dos arquivos .zip para o DBFS
 
 # COMMAND ----------
 
@@ -130,7 +130,7 @@ dbutils.fs.cp('dbfs:/tmp/Superior_2019.zip', 'file:/tmp/Censo_Superior_2019.zip'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo os arquivos csv
+# MAGIC ###Ler os arquivos csv
 
 # COMMAND ----------
 
@@ -168,29 +168,29 @@ df_2019.printSchema()
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df_2017.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/bronze/censoSuperiorDocentes_2017')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 #2018
 df_2018.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/censoSuperiorDocentes_2018_19')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 #2019
 df_2019.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/censoSuperiorDocentes_2018_19')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o dataframe de 2017 e fazendo as transformações para ler como único
+# MAGIC ###Ler o dataframe de 2017 e fazer as transformações para unificação
 
 # COMMAND ----------
 
-#lendo o dataframe de 2017 para fazer as transformações
+#ler o dataframe de 2017 para fazer as transformações
 df_2017 = spark.read.format('delta').load(Blob_Path + '/mnt/bronze/censoSuperiorDocentes_2017')
 display(df_2017)
 
@@ -225,17 +225,17 @@ display(df_2017)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) 
 df_2017.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/censoSuperiorDocentes')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o dataframe de 2018 e 2019 e fazendo as transformações e salvando como um único
+# MAGIC ###Ler o dataframe de 2018 e 2019 e fazer as transformações para unificação
 
 # COMMAND ----------
 
-#lendo os dataframes de 2018 e 2019 para fazer as transformações
+#ler os dataframes de 2018 e 2019 para fazer as transformações
 df_2018_19 = spark.read.format('delta').load(Blob_Path + '/mnt/bronze/censoSuperiorDocentes_2018_19')
 display(df_2018_19)
 df_2018_19.printSchema()
@@ -259,13 +259,13 @@ display(df_2018_19)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) 
 df_2018_19.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/censoSuperiorDocentes') 
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo as informações dos dois DataFrames (2017/2018_19) como Dataframe único de Educação Superior
+# MAGIC ###Ler as informações dos DataFrames (2017/2018_19) como Dataframe único de Educação Superior
 
 # COMMAND ----------
 
@@ -281,12 +281,12 @@ df_superior.count()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Fazendo as transformações no dataframe único
+# MAGIC ###Fazer as transformações no dataframe único
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Alterando as informações de cada coluna - trocando os números por sua informações equivalentes
+# MAGIC Alterar as informações de cada coluna - trocando os números por sua informações equivalentes
 
 # COMMAND ----------
 
@@ -357,7 +357,7 @@ display(df_superior)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Mudando os tipos dos dados e os nomes das colunas
+# MAGIC Mudar os tipos dos dados e os nomes das colunas
 
 # COMMAND ----------
 
@@ -389,7 +389,7 @@ display(df_superior)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada prata e verificando o arquivo
+# MAGIC ###Salvar na camada prata e verificar o arquivo
 
 # COMMAND ----------
 
@@ -398,19 +398,20 @@ df_superior.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/prata
 
 # COMMAND ----------
 
-#verificando o esquema e os dados
+#verificar o esquema e os dados
 df_superior_prata = spark.read.format('delta').load(Blob_Path + '/mnt/prata/censoSuperiorDocente')  
 df_superior_prata.printSchema()
 display(df_superior_prata)
 
 # COMMAND ----------
 
+#verificar a quantidade de linhas
 df_superior_prata.count()
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvanda na camada ouro para consumo pelo PowerBI
+# MAGIC ###Salvar na camada ouro para consumo pelo PowerBI
 
 # COMMAND ----------
 
