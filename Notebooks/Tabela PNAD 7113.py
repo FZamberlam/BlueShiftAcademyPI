@@ -20,7 +20,7 @@ Blob_Path = 'wasbs://m03container@m03storage.blob.core.windows.net'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Importando os pacotes
+# MAGIC ###Importar os pacotes
 
 # COMMAND ----------
 
@@ -31,7 +31,7 @@ import json
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Fazendo request (url) e transformando o Json em DataFrame do Spark
+# MAGIC ###Fazer request (url) e transformar o Json em DataFrame do Spark
 
 # COMMAND ----------
 
@@ -57,11 +57,11 @@ df.show()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada bronze e fazendo as transformações
+# MAGIC ###Salvar na camada bronze e fazer as transformações
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze)
+#salvar no delta lake (camada bronze)
 df.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/bronze/pnad7113')
 
 # COMMAND ----------
@@ -101,7 +101,7 @@ display(df_prata)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada prata e verificando os dados
+# MAGIC ###Salvar na camada prata e verificar os dados
 
 # COMMAND ----------
 
@@ -110,7 +110,7 @@ df_prata.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/prata/pn
 
 # COMMAND ----------
 
-#verificar os dados
+#verificar o esquema e os dados
 df_ouro = spark.read.format('delta').load(Blob_Path + '/mnt/prata/pnad7113') 
 df_ouro.printSchema()
 display(df_ouro)
@@ -118,7 +118,7 @@ display(df_ouro)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada ouro para alimentar o PowerBI
+# MAGIC ###Salvar na camada ouro para alimentar o PowerBI
 
 # COMMAND ----------
 
