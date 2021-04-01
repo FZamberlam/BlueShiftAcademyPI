@@ -20,7 +20,7 @@ Blob_Path = 'wasbs://m03container@m03storage.blob.core.windows.net'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Instalando e importando pacotes
+# MAGIC ###Instalar e importar pacotes
 
 # COMMAND ----------
 
@@ -35,7 +35,7 @@ import pandas as pd
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Buscando e extraindo o arquivo na url
+# MAGIC ###Extração do arquivo da url
 
 # COMMAND ----------
 
@@ -44,10 +44,12 @@ import pandas as pd
 
 # COMMAND ----------
 
+#salvar no dbfs
 dbutils.fs.mv('file:/tmp/investimentos.zip', 'dbfs:/tmp/investimentos.zip')
 
 # COMMAND ----------
 
+#copiar do dbfs para a máquina para conseguir fazer as transformações
 dbutils.fs.cp('dbfs:/tmp/investimentos.zip', 'file:/tmp/investimentosPIB.zip')
 
 # COMMAND ----------
@@ -59,7 +61,7 @@ unzip /tmp/investimentosPIB.zip -d /tmp/investimentos
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o arquivo necessário e salvando na camada bronze
+# MAGIC ###Ler o arquivo necessário e salvar na camada bronze
 
 # COMMAND ----------
 
@@ -78,13 +80,13 @@ df = spark.createDataFrame(df)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/bronze/investimentos') 
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o arquivo e fazendo as transformações
+# MAGIC ###Ler o arquivo e fazer as transformações
 
 # COMMAND ----------
 
@@ -124,17 +126,17 @@ df_prata = spark.createDataFrame(df_prata)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada Prata com as transformações
+# MAGIC ###Salvar na camada Prata com as transformações
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela prata)
+#salvar no delta lake (camada prata)
 df_prata.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/prata/investimentos')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Verificando o DataFrame e salvando na camada ouro para alimentar o Power BI
+# MAGIC ###Verificar o DataFrame e salvar na camada ouro para alimentar o Power BI
 
 # COMMAND ----------
 
