@@ -52,9 +52,9 @@ from pyspark.sql.functions import *
 
 # COMMAND ----------
 
-dbutils.fs.cp(blobPath + "censo_escolar_2017.zip", "file:/tmp/censo_escolar_2017.zip")
-dbutils.fs.cp(blobPath + "censo_escolar_2018.zip", "file:/tmp/censo_escolar_2018.zip")
-dbutils.fs.cp(blobPath + "censo_escolar_2019.zip", "file:/tmp/censo_escolar_2019.zip")
+dbutils.fs.cp("file:/tmp/censo_escolar_2017.zip", blobPath + "censo_escolar_2017.zip")
+dbutils.fs.cp("file:/tmp/censo_escolar_2018.zip", blobPath + "censo_escolar_2018.zip")
+dbutils.fs.cp("file:/tmp/censo_escolar_2019.zip", blobPath + "censo_escolar_2019.zip")
 
 # COMMAND ----------
 
