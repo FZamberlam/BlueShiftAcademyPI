@@ -20,7 +20,7 @@ Blob_Path = 'wasbs://m03container@m03storage.blob.core.windows.net'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Importando os pacotes
+# MAGIC ###Importar os pacotes
 
 # COMMAND ----------
 
@@ -32,7 +32,7 @@ from pyspark.sql.types import IntegerType
 
 # COMMAND ----------
 
-#salvando na máquina para extração dos dados
+#salvar na máquina para extração dos dados
 dbutils.fs.cp('dbfs:/tmp/Superior_2017.zip', 'file:/tmp/Censo_Superior_2017.zip')
 dbutils.fs.cp('dbfs:/tmp/Superior_2018.zip', 'file:/tmp/Censo_Superior_2018.zip')
 dbutils.fs.cp('dbfs:/tmp/Superior_2019.zip', 'file:/tmp/Censo_Superior_2019.zip')
@@ -40,7 +40,7 @@ dbutils.fs.cp('dbfs:/tmp/Superior_2019.zip', 'file:/tmp/Censo_Superior_2019.zip'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Extraindo os arquivos
+# MAGIC ###Extrair os arquivos
 
 # COMMAND ----------
 
@@ -103,7 +103,7 @@ dbutils.fs.cp('dbfs:/tmp/Superior_2019.zip', 'file:/tmp/Censo_Superior_2019.zip'
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo os arquivos csv, criando os dataframes, verificando os esquemas e salvando na camada bronze
+# MAGIC ###Ler os arquivos csv, criar os dataframes, verificar os esquemas e salvar na camada bronze
 
 # COMMAND ----------
 
@@ -141,35 +141,35 @@ df_2019.printSchema()
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 df_2017.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/bronze/SuperiorAlunos_2017')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 #2018
 df_2018.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/SuperiorAlunos_2018_19')
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) dados sem modificação
 #2019
 df_2019.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/SuperiorAlunos_2018_19')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o dataframe de 2017 e fazendo as transformações para ler como único
+# MAGIC ###Ler o dataframe de 2017 e fazer as transformações para unificação de todos os dados
 
 # COMMAND ----------
 
-#lendo o dataframe de 2017 para fazer as transformações
+#ler o dataframe de 2017 para fazer as transformações
 df_2017 = spark.read.format('delta').load(Blob_Path + '/mnt/bronze/SuperiorAlunos_2017')
 display(df_2017)
 
 # COMMAND ----------
 
-#verificando se existem valores nulos na tabela
+#verificar se existem valores nulos na tabela
 display(df_2017.select([count(when(col(c).isNull(), c)).alias(c) for c in df_2017.columns]))
 
 # COMMAND ----------
@@ -197,24 +197,24 @@ display(df_2017)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze)
 df_2017.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/SuperiorAlunos')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo o dataframe de 2018 e 2019 e fazendo as transformações e salvando como um único
+# MAGIC ###Ler os dataframes de 2018 e 2019 e fazer as transformações para unificar os dados
 
 # COMMAND ----------
 
-#lendo os dataframes de 2018 e 2019 para fazer as transformações
+#ler os dataframes de 2018 e 2019 para fazer as transformações
 df_2018_19 = spark.read.format('delta').load(Blob_Path + '/mnt/bronze/SuperiorAlunos_2018_19')
 display(df_2018_19)
 df_2018_19.printSchema()
 
 # COMMAND ----------
 
-#verificando se existem valores nulos na tabela
+#verificar se existem valores nulos na tabela
 display(df_2018_19.select([count(when(col(c).isNull(), c)).alias(c) for c in df_2018_19.columns]))
 
 # COMMAND ----------
@@ -231,13 +231,13 @@ display(df_2018_19)
 
 # COMMAND ----------
 
-#salvar no delta lake (tabela bronze) dados sem modificação
+#salvar no delta lake (camada bronze) 
 df_2018_19.write.format('delta').mode('append').save(Blob_Path + '/mnt/bronze/SuperiorAlunos')
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Lendo os dataframes como um dataframe único
+# MAGIC ###Ler os dataframes como um dataframe único
 
 # COMMAND ----------
 
@@ -253,12 +253,12 @@ df_superior.count()
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Fazendo as transformações no dataframe único
+# MAGIC ###Fazer as transformações no dataframe único
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Alterando as informações de cada coluna - trocando os números por sua informações equivalentes
+# MAGIC Alterar as informações de cada coluna - trocando os números por sua informações equivalentes
 
 # COMMAND ----------
 
@@ -267,6 +267,7 @@ df_superior = df_superior.withColumn('NU_IDADE', df_superior['NU_IDADE'].cast(In
 
 # COMMAND ----------
 
+#inserir nova coluna - 'grupo de idade'
 Grupo_de_Idade = udf(lambda NU_IDADE: 'menos de 15' if NU_IDADE < 15 else  
                        '15 a 19' if (NU_IDADE  >= 15 and NU_IDADE  < 20) else
                        '20 a 29' if (NU_IDADE  >= 20 and NU_IDADE  < 30) else
@@ -359,7 +360,7 @@ display(df_superior)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC Mudando os tipos dos dados e os nomes das colunas
+# MAGIC Mudar os tipos dos dados e os nomes das colunas
 
 # COMMAND ----------
 
@@ -391,7 +392,7 @@ display(df_superior)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvando na camada prata e verificando o arquivo
+# MAGIC ###Salvar na camada prata e verificar o arquivo
 
 # COMMAND ----------
 
@@ -400,22 +401,23 @@ df_superior.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/prata
 
 # COMMAND ----------
 
-#verificando o esquema e os dados
+#verificar o esquema e os dados
 df_superior_prata = spark.read.format('delta').load(Blob_Path + '/mnt/prata/SuperiorAlunos')  
 df_superior_prata.printSchema()
 display(df_superior_prata)
 
 # COMMAND ----------
 
+#verificar se a quantidade de linhas está correta
 df_superior_prata.count()
 
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ###Salvanda na camada ouro para consumo pelo PowerBI
+# MAGIC ###Salvar na camada ouro para consumo pelo PowerBI
 
 # COMMAND ----------
 
 #ler como dataframe novo(ouro) e persistir na camada ouro para alimentar o PBI
 df_superior_prata.write.format('delta').mode('overwrite').save(Blob_Path + '/mnt/ouro/censoSuperiorAlunos')
-df_superior_prata.write.format('delta').mode('overwrite').saveAsTable('CensoSuperiorAlunos')
+df_superior_prata.write.format('delta')..mode('overwrite').option('overwriteSchema', 'true').partitionBy('Ano').saveAsTable('CensoSuperiorAlunos')
